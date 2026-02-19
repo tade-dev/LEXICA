@@ -10,6 +10,11 @@ struct CameraReadingView: View {
         ZStack {
             Color(red: 0.97, green: 0.97, blue: 0.965)
                 .ignoresSafeArea()
+            
+            ARCameraView(cameraService: cameraService)
+                .ignoresSafeArea()
+                .opacity(0.001)
+                .allowsHitTesting(false)
 
             VStack(spacing: AppTheme.large) {
                 topBar
@@ -26,6 +31,9 @@ struct CameraReadingView: View {
         }
         .onAppear {
             floating = true
+        }
+        .onChange(of: viewModel.textObservations) { _, observations in
+            cameraService.placeHighlights(for: observations)
         }
     }
 
@@ -154,8 +162,11 @@ struct ElevatedButtonStyle: ButtonStyle {
     )
 }
 private struct PreviewTextService: TextRecognitionServiceProtocol {
-    func recognizeText(from pixelBuffer: CVPixelBuffer, completion: @escaping (String) -> Void) {
-        completion("Recognized text will appear here.")
+    func recognizeText(from pixelBuffer: CVPixelBuffer, completion: @escaping (RecognizedTextResult) -> Void) {
+        completion(RecognizedTextResult(
+            fullText: "Recognized text will appear here.",
+            observations: []
+        ))
     }
 }
 

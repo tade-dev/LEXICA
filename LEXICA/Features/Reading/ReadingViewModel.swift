@@ -1,10 +1,12 @@
 import Foundation
 import Combine
+import Vision
 
 final class ReadingViewModel: ObservableObject {
     @Published var recognizedText: String
     @Published var isRecognizing: Bool
     @Published var isSpeaking: Bool = false
+    @Published var textObservations: [VNRecognizedTextObservation] = []
     @Published var settings: ReadingSettings
 
     private let textService: TextRecognitionServiceProtocol
@@ -37,9 +39,10 @@ final class ReadingViewModel: ObservableObject {
             self?.isRecognizing = true
         }
 
-        textService.recognizeText(from: pixelBuffer) { [weak self] text in
+        textService.recognizeText(from: pixelBuffer) { [weak self] result in
             DispatchQueue.main.async {
-                self?.recognizedText = text
+                self?.recognizedText = result.fullText
+                self?.textObservations = result.observations
                 self?.isRecognizing = false
             }
         }
