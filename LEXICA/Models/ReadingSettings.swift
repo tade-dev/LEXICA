@@ -1,12 +1,12 @@
 import Foundation
 
 struct ReadingSettings: Codable, Equatable {
-    let letterSpacing: Double
-    let lineSpacing: Double
-    let backgroundOpacity: Double
-    let fontName: String
-    let focusModeEnabled: Bool
-    let speechRate: Float
+    var letterSpacing: Double
+    var lineSpacing: Double
+    var backgroundOpacity: Double
+    var fontName: String
+    var focusModeEnabled: Bool
+    var speechRate: Float
 
     static let `default` = ReadingSettings(
         letterSpacing: 0.0,
