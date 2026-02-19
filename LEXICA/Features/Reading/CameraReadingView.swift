@@ -1,22 +1,28 @@
 import SwiftUI
+import CoreVideo
 
 struct CameraReadingView: View {
     @StateObject var viewModel: ReadingViewModel
+    let cameraService: ARCameraService
 
     var body: some View {
-        VStack(spacing: AppTheme.large) {
-            topBar
+        ZStack {
+            ARCameraView(cameraService: cameraService)
+                .ignoresSafeArea()
 
-            Spacer()
+            VStack(spacing: AppTheme.large) {
+                topBar
 
-            readingText
+                Spacer()
 
-            Spacer()
+                readingText
 
-            bottomBar
+                Spacer()
+
+                bottomBar
+            }
+            .padding(AppTheme.large)
         }
-        .padding(AppTheme.large)
-        .background(AppTheme.primaryBackground.ignoresSafeArea())
     }
 
     private var topBar: some View {
@@ -67,6 +73,9 @@ struct CameraReadingView: View {
                 )
             }
         }
+        .padding(AppTheme.medium)
+        .background(AppTheme.focusOverlay.opacity(0.85))
+        .cornerRadius(AppTheme.cornerRadius)
     }
 
     private var focusModeText: some View {
@@ -97,7 +106,8 @@ struct CameraReadingView: View {
         viewModel: ReadingViewModel(
             textService: PreviewTextService(),
             speechService: PreviewSpeechService()
-        )
+        ),
+        cameraService: ARCameraService(textService: PreviewTextService())
     )
 }
 private struct PreviewTextService: TextRecognitionServiceProtocol {
@@ -106,6 +116,9 @@ private struct PreviewTextService: TextRecognitionServiceProtocol {
     }
 
     func stopRecognition() {
+    }
+
+    func processFrame(_ pixelBuffer: CVPixelBuffer) {
     }
 }
 
