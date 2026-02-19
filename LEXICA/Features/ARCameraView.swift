@@ -3,11 +3,12 @@ import RealityKit
 import ARKit
 
 struct ARCameraView: UIViewRepresentable {
-    let cameraService: ARCameraService
 
     func makeUIView(context: Context) -> ARView {
-        let view = cameraService.makeARView()
-        cameraService.startSession()
+        let view = ARView(frame: .zero)
+        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        let configuration = ARWorldTrackingConfiguration()
+        view.session.run(configuration)
         return view
     }
 
@@ -15,7 +16,6 @@ struct ARCameraView: UIViewRepresentable {
     }
 
     static func dismantleUIView(_ uiView: ARView, coordinator: ()) {
-        // Ensure session is stopped when the view is torn down.
         uiView.session.pause()
     }
 }
