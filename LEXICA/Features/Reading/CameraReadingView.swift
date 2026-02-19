@@ -4,10 +4,11 @@ import CoreVideo
 struct CameraReadingView: View {
     @StateObject var viewModel: ReadingViewModel
     let cameraService: ARCameraService
+    @State private var floating = false
 
     var body: some View {
         ZStack {
-            ARCameraView(cameraService: cameraService)
+            Color(red: 0.97, green: 0.97, blue: 0.965)
                 .ignoresSafeArea()
 
             VStack(spacing: AppTheme.large) {
@@ -23,38 +24,41 @@ struct CameraReadingView: View {
             }
             .padding(AppTheme.large)
         }
+        .onAppear {
+            floating = true
+        }
     }
 
     private var topBar: some View {
         HStack {
-            Button("Settings") {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Reading Mode")
+                    .font(.title2.bold())
+                Text("Transform text for clarity")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
-            .foregroundStyle(AppTheme.mutedText)
-
             Spacer()
 
-            Toggle("Focus", isOn: $viewModel.settings.focusModeEnabled)
+            Toggle("", isOn: $viewModel.settings.focusModeEnabled)
                 .labelsHidden()
         }
+        .padding(.top, 12)
     }
 
     private var bottomBar: some View {
-        HStack(spacing: AppTheme.medium) {
+        HStack(spacing: 16) {
             Button("Scan Text") {
                 viewModel.scanCurrentFrame(using: cameraService)
             }
-            .padding(.vertical, AppTheme.small)
-            .padding(.horizontal, AppTheme.medium)
-            .background(AppTheme.focusOverlay)
-            .cornerRadius(AppTheme.cornerRadius)
+            .buttonStyle(ElevatedButtonStyle())
 
-            Button("Speak") {
+            Button(viewModel.isSpeaking ? "Stop" : "Speak") {
                 viewModel.speakCurrentText()
             }
-            .padding(.vertical, AppTheme.small)
-            .padding(.horizontal, AppTheme.medium)
-            .background(AppTheme.focusOverlay)
-            .cornerRadius(AppTheme.cornerRadius)
+            .buttonStyle(ElevatedButtonStyle())
+            .scaleEffect(viewModel.isSpeaking ? 1.05 : 1.0)
+            .animation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true), value: viewModel.isSpeaking)
 
             if viewModel.isRecognizing {
                 ProgressView()
@@ -64,7 +68,16 @@ struct CameraReadingView: View {
 
     private var readingText: some View {
         Group {
-            if viewModel.settings.focusModeEnabled {
+            if viewModel.recognizedText.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "text.viewfinder")
+                        .font(.system(size: 32))
+                        .foregroundStyle(.secondary)
+                    Text("Tap Scan to capture text")
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else if viewModel.settings.focusModeEnabled {
                 focusModeText
             } else {
                 DyslexiaTextView(
@@ -77,9 +90,17 @@ struct CameraReadingView: View {
                 ))
             }
         }
-        .padding(AppTheme.medium)
-        .background(AppTheme.focusOverlay.opacity(0.85))
-        .cornerRadius(AppTheme.cornerRadius)
+        .padding(32)
+        .background(
+            RoundedRectangle(cornerRadius: 32)
+                .fill(Color(red: 0.94, green: 0.91, blue: 0.80))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 32)
+                .stroke(Color.white.opacity(0.4), lineWidth: 1)
+        )
+        .opacity(viewModel.isSpeaking ? 0.95 : 1.0)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.isSpeaking)
         .animation(.easeInOut(duration: 0.4), value: viewModel.recognizedText)
     }
 
@@ -103,6 +124,23 @@ struct CameraReadingView: View {
         viewModel.recognizedText
             .components(separatedBy: .newlines)
             .first ?? ""
+    }
+}
+
+struct ElevatedButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline)
+            .padding(.horizontal, 28)
+            .padding(.vertical, 14)
+            .background(
+                Capsule()
+                    .fill(Color.black.opacity(0.85))
+            )
+            .foregroundColor(.white)
+            .shadow(color: .black.opacity(0.15), radius: 10, y: 6)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 

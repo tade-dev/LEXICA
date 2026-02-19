@@ -4,6 +4,7 @@ import Combine
 final class ReadingViewModel: ObservableObject {
     @Published var recognizedText: String
     @Published var isRecognizing: Bool
+    @Published var isSpeaking: Bool = false
     @Published var settings: ReadingSettings
 
     private let textService: TextRecognitionServiceProtocol
@@ -45,7 +46,17 @@ final class ReadingViewModel: ObservableObject {
     }
 
     func speakCurrentText() {
-        speechService.speak(text: recognizedText, rate: settings.speechRate)
+        if isSpeaking {
+            speechService.stopSpeaking()
+            DispatchQueue.main.async { [weak self] in
+                self?.isSpeaking = false
+            }
+        } else {
+            speechService.speak(text: recognizedText, rate: settings.speechRate)
+            DispatchQueue.main.async { [weak self] in
+                self?.isSpeaking = true
+            }
+        }
     }
 
     func updateSettings(_ newSettings: ReadingSettings) {
