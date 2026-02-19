@@ -2,9 +2,7 @@ import Foundation
 import CoreVideo
 
 protocol TextRecognitionServiceProtocol {
-    func startRecognition(handler: @escaping (String) -> Void)
-    func stopRecognition()
-    func processFrame(_ pixelBuffer: CVPixelBuffer)
+    func recognizeText(from pixelBuffer: CVPixelBuffer, completion: @escaping (String) -> Void)
 }
 
 protocol SpeechServiceProtocol {

@@ -40,12 +40,8 @@ struct CameraReadingView: View {
 
     private var bottomBar: some View {
         HStack(spacing: AppTheme.medium) {
-            Button(viewModel.isRecognizing ? "Stop" : "Start") {
-                if viewModel.isRecognizing {
-                    viewModel.stopRecognition()
-                } else {
-                    viewModel.startRecognition()
-                }
+            Button("Scan Text") {
+                viewModel.scanCurrentFrame(using: cameraService)
             }
             .padding(.vertical, AppTheme.small)
             .padding(.horizontal, AppTheme.medium)
@@ -59,6 +55,10 @@ struct CameraReadingView: View {
             .padding(.horizontal, AppTheme.medium)
             .background(AppTheme.focusOverlay)
             .cornerRadius(AppTheme.cornerRadius)
+
+            if viewModel.isRecognizing {
+                ProgressView()
+            }
         }
     }
 
@@ -71,11 +71,16 @@ struct CameraReadingView: View {
                     text: viewModel.recognizedText,
                     settings: viewModel.settings
                 )
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .bottom)),
+                    removal: .opacity
+                ))
             }
         }
         .padding(AppTheme.medium)
         .background(AppTheme.focusOverlay.opacity(0.85))
         .cornerRadius(AppTheme.cornerRadius)
+        .animation(.easeInOut(duration: 0.4), value: viewModel.recognizedText)
     }
 
     private var focusModeText: some View {
@@ -111,14 +116,8 @@ struct CameraReadingView: View {
     )
 }
 private struct PreviewTextService: TextRecognitionServiceProtocol {
-    func startRecognition(handler: @escaping (String) -> Void) {
-        handler("Recognized text will appear here.")
-    }
-
-    func stopRecognition() {
-    }
-
-    func processFrame(_ pixelBuffer: CVPixelBuffer) {
+    func recognizeText(from pixelBuffer: CVPixelBuffer, completion: @escaping (String) -> Void) {
+        completion("Recognized text will appear here.")
     }
 }
 

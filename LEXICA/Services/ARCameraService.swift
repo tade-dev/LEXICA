@@ -2,10 +2,9 @@ import UIKit
 import ARKit
 import RealityKit
 
-final class ARCameraService: NSObject, CameraServiceProtocol, ARSessionDelegate {
+final class ARCameraService: NSObject, CameraServiceProtocol {
     private var arView: ARView?
     private let textService: TextRecognitionServiceProtocol
-    private let frameQueue = DispatchQueue(label: "lexica.ar.frame.queue", qos: .userInitiated)
 
     init(textService: TextRecognitionServiceProtocol) {
         self.textService = textService
@@ -13,9 +12,8 @@ final class ARCameraService: NSObject, CameraServiceProtocol, ARSessionDelegate 
     }
 
     func makeARView() -> ARView {
-        let view = ARView(frame: UIScreen.main.bounds)
+        let view = ARView(frame: .zero)
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.session.delegate = self
         arView = view
         return view
     }
@@ -32,10 +30,7 @@ final class ARCameraService: NSObject, CameraServiceProtocol, ARSessionDelegate 
         arView?.session.pause()
     }
 
-    func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        let pixelBuffer = frame.capturedImage
-        frameQueue.async { [weak self] in
-            self?.textService.processFrame(pixelBuffer)
-        }
+    func captureCurrentFrame() -> CVPixelBuffer? {
+        arView?.session.currentFrame?.capturedImage
     }
 }

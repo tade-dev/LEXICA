@@ -23,14 +23,25 @@ final class ReadingViewModel: ObservableObject {
 
     func startRecognition() {
         isRecognizing = true
-        textService.startRecognition { [weak self] text in
-            self?.recognizedText = text
-        }
     }
 
     func stopRecognition() {
         isRecognizing = false
-        textService.stopRecognition()
+    }
+
+    func scanCurrentFrame(using cameraService: ARCameraService) {
+        guard let pixelBuffer = cameraService.captureCurrentFrame() else { return }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.isRecognizing = true
+        }
+
+        textService.recognizeText(from: pixelBuffer) { [weak self] text in
+            DispatchQueue.main.async {
+                self?.recognizedText = text
+                self?.isRecognizing = false
+            }
+        }
     }
 
     func speakCurrentText() {

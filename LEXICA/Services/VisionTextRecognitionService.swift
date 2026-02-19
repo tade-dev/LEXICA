@@ -2,23 +2,16 @@ import Vision
 
 final class VisionTextRecognitionService: TextRecognitionServiceProtocol {
     private let queue = DispatchQueue(label: "lexica.vision.text", qos: .userInitiated)
-    private var handler: ((String) -> Void)?
 
-    func startRecognition(handler: @escaping (String) -> Void) {
-        self.handler = handler
-    }
-
-    func stopRecognition() {
-        handler = nil
-    }
-
-    func processFrame(_ pixelBuffer: CVPixelBuffer) {
-        let request = VNRecognizeTextRequest { [weak self] request, _ in
+    func recognizeText(from pixelBuffer: CVPixelBuffer, completion: @escaping (String) -> Void) {
+        let request = VNRecognizeTextRequest { request, _ in
             guard let observations = request.results as? [VNRecognizedTextObservation] else { return }
-            let text = observations
+            let block = observations
                 .compactMap { $0.topCandidates(1).first?.string }
                 .joined(separator: "\n")
-            self?.handler?(text)
+            DispatchQueue.main.async {
+                completion(block)
+            }
         }
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
